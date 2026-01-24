@@ -1,5 +1,5 @@
-import dotenv from 'dotenv';
+import { app } from "./app";
 
-dotenv.config();
-
-console.log('API KEY:', process.env.GEMINI_AI_API_KEY);
+app.listen(3000, () => {
+  console.log("Server is running on port 3000<3");
+});
