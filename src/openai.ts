@@ -1,10 +1,13 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import OpenAI from 'openai';
-import { zodResponseFormat } from 'openai/helpers/zod';
+import { zodResponseFormat, zodTextFormat } from 'openai/helpers/zod';
 import { ChatCompletionMessageParam, ChatCompletionTool } from "openai/resources";
 import { z } from 'zod';
 import { produtosEmEstoque, produtosEmFalta, setarEmbedding, todosProdutos } from "./database";
+import { text } from 'node:stream/consumers';
+import { ResponseCreateParams } from 'openai/resources/responses/responses.js';
+import { ResponseCreateParamsNonStreaming } from 'openai/resources/responses/responses.mjs';
 
 const schema = z.object({
   produtos: z.array(z.string()),
@@ -121,4 +124,25 @@ export const embedProducts = async () => {
     if (!embedding) return;
     setarEmbedding(index, embedding);
   }))
+}
+
+const generateResponse = async (params: ResponseCreateParamsNonStreaming) => {
+  const response = await client.responses.parse(params);
+
+  if(response.output_parsed) return response.output_parsed;
+  
+  if(response.output_text) return response.output_text;
+
+  return null;  
+}
+
+export const generateCart = async (input: string, products : string[]) => {
+  return generateResponse({
+    model: 'gpt-4o-nano',
+    instructions: `Retorne uma lista de até 5 produtos que satifaça a necessidade do usuário. Os produtos disponiveis são os seguintes: ${JSON.stringify(products)}.`,
+    input,
+    text: {
+      format: zodTextFormat(schema, 'carrinho'),
+    }
+  });
 }
