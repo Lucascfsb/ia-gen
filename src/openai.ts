@@ -5,9 +5,8 @@ import { zodResponseFormat, zodTextFormat } from 'openai/helpers/zod';
 import { ChatCompletionMessageParam, ChatCompletionTool } from "openai/resources";
 import { z } from 'zod';
 import { produtosEmEstoque, produtosEmFalta, setarEmbedding, todosProdutos } from "./database";
-import { text } from 'node:stream/consumers';
-import { ResponseCreateParams } from 'openai/resources/responses/responses.js';
 import { ResponseCreateParamsNonStreaming } from 'openai/resources/responses/responses.mjs';
+import { ReadStream } from 'node:fs'
 
 const schema = z.object({
   produtos: z.array(z.string()),
@@ -141,8 +140,33 @@ export const generateCart = async (input: string, products : string[]) => {
     model: 'gpt-4o-nano',
     instructions: `Retorne uma lista de até 5 produtos que satifaça a necessidade do usuário. Os produtos disponiveis são os seguintes: ${JSON.stringify(products)}.`,
     input,
+    tools: [
+      {
+        type: 'file_search',
+        vector_store_ids: ["vs-abc123xyz456def789ghi012jkl345mn"],
+      }
+    ],
     text: {
       format: zodTextFormat(schema, 'carrinho'),
     }
   });
 }
+
+export const uploadFile = async (file: ReadStream) => {
+  const uploaded = await client.files.create({
+    file,
+    purpose: 'assistants',
+  });
+
+  console.dir(uploaded, { depth: null });
+}
+
+export const createVector = async () => {
+  const vectorStore = await client.vectorStores.create({
+    name: 'node_ia_file_search_class',
+    file_ids: ['file-abc123xyz456def789ghi012jkl345mn'],
+  })
+
+  console.dir(vectorStore, { depth: null });
+}
+
