@@ -1,5 +1,5 @@
 import express from 'express';
-import { createVector, embedProducts, generateCart, generateEmbedding, generateProducts, uploadFile } from "./openai";
+import { createEmbeddingsBatch, createEmbeddingsBatchFiles, createVector, embedProducts, generateCart, generateEmbedding, generateProducts, uploadFile } from "./openai";
 import { produtosSimilares, todosProdutos } from "./database";
 import { createReadStream } from 'node:fs';
 import path from 'node:path';
@@ -59,6 +59,14 @@ app.post('/upload', async (req, res) => {
 app.post('/vector-store', async (req, res) => {
   await createVector();
   res.status(201).end();
+})
+
+app.post('/embeddings-batch', async (req, res) => {
+  const file = await createEmbeddingsBatchFiles(['sorvete', 'alface']);
+
+  const batch = await createEmbeddingsBatch(file.id)
+
+  res.json(batch);
 })
 
 export { app };
