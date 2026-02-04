@@ -19,14 +19,18 @@ app.post('/generate', async (req, res) => {
 });
 
 app.post('/cart', async (req, res) => {
-  const {message} = req.body;
-  const embedding = await generateEmbedding(message);
-  if (!embedding) {
-    return res.status(500).json({ error: 'Failed to generate embedding' });
-  }
-  const produtos = produtosSimilares(embedding)
+  const {input} = req.body;
 
-  res.json({ produtos: produtos.map(p => ({ nome: p.nome, similaridade: p.similaridade })) });
+  const cart = await generateCart(input, todosProdutos().map(p => p.nome));
+  res.json(cart);
+  // const {message} = req.body;
+  // const embedding = await generateEmbedding(message);
+  // if (!embedding) {
+  //   return res.status(500).json({ error: 'Failed to generate embedding' });
+  // }
+  // const produtos = produtosSimilares(embedding)
+
+  // res.json({ produtos: produtos.map(p => ({ nome: p.nome, similaridade: p.similaridade })) });
 })
 
 app.post('/embeddings', async (req, res) => {
