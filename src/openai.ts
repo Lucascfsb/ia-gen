@@ -173,7 +173,7 @@ export const createVector = async () => {
 export const createEmbeddingsBatchFiles = async (products: string[]) => {
   const content = products
     .map((p ,i) => ({
-      custom_id: i,
+      custom_id: String(i),
       methd: 'POST',
       url: 'v1/embeddings',
       body: {
@@ -203,4 +203,36 @@ export const createEmbeddingsBatch = async (fileId: string) => {
   });
 
   return batch;
+}
+
+export const getBatch = async (id: string) => {
+  return await client.batches.retrieve(id);
+}
+
+export const getFileContent = async (id: string) => {
+  const response = await client.files.content(id);
+
+  return await response.text();
+}
+
+export const processEmbeddingsBatchResult = async (batchId: string) => {
+  const batch = await getBatch(batchId);
+  if(batch.status !== 'completed' || !batch.output_file_id) {
+    return null
+  }
+
+  const content = await getFileContent(batch.output_file_id);
+  return content.split('\n')
+    .map(line =>{
+      try {
+        const parsed = JSON.parse(line) as {custom_id: string; reponse: {body: {data: { embedding: number[] } []} }};
+        return {
+          id: Number(parsed.custom_id),
+          embedding: parsed.reponse.body.data[0].embedding,
+        };
+      } catch (error) {
+        return null;
+      }
+    })
+    .filter((r): r is { id: number; embedding: number[] } => Boolean(r));
 }
