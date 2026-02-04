@@ -134,12 +134,35 @@ const generateResponse = async<T = null> (params: ResponseCreateParamsNonStreami
 }
 
 const createCartPromptChunks = (input: string, products: string[]) => {
-  const chunkSize = 10;
+  const chunkSize = 100;
   const chunks:string[] = []
 
   for (let i = 0; i < chunkSize; i += chunkSize) {
     chunks.push(
-      `Retorne uma lista de até 5 produtos que satifaça a necessidade do usuário. Os produtos disponiveis são os seguintes: ${JSON.stringify(
+      `Retorne uma lista de até 5 produtos que satifaça a necessidade do usuário. 
+      
+      1. Divida o prato em componentes.
+      2. Para cada componente, selecione os produtos mais adequados da lista fornecida.
+      3. Liste todos os produtos necessários para todos os componentes.
+
+      -----------
+
+      Exemplo:
+      -Produtos disponíveis: Farinha de trigo, Açúcar, Ovos, Leite, Manteiga, Fermento em pó, Sal, Chocolate em pó, Baunilha.
+      -Prato: Bolo de chocolate.
+
+      1. Divida o prato em componentes.
+        - Massa, recheio, cobertura.
+      2. Para cada componente, selecione os produtos mais adequados da lista fornecida.
+        -Massa: Farinha de trigo, Açúcar, Ovos, Leite, Manteiga, Fermento em pó, Sal.
+        -Recheio: Chocolate em pó, Açúcar, Leite.
+        -Cobertura: Chocolate em pó, Manteiga, Açúcar.
+      3. Liste todos os produtos necessários para todos os componentes.
+        - Farinha de trigo, Açúcar, Ovos, Leite, Manteiga, Fermento em pó, Sal, Chocolate em pó.
+
+      -----------
+
+      Os produtos disponiveis são os seguintes: ${JSON.stringify(
         products.slice(i, i + chunkSize)
       )}.`
     )
